@@ -1,6 +1,17 @@
-export type Role = "admin" | "cashier" | "franchisor";
+export type Role = "admin" | "manager" | "cashier" | "waiter" | "kitchen" | "franchisor";
 
-export type Permission = "discount" | "returns" | "reports" | "inventory" | "customers" | "orders" | "purchasing";
+export type Permission =
+  | "pos"
+  | "kitchen"
+  | "discount"
+  | "returns"
+  | "reports"
+  | "inventory"
+  | "customers"
+  | "orders"
+  | "purchasing"
+  | "settings"
+  | "team";
 
 export interface AuthUser {
   id: number;
