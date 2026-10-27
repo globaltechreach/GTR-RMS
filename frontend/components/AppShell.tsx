@@ -27,6 +27,7 @@ import {
   UserCog,
   Network,
   MoreHorizontal,
+  Flame,
 } from "lucide-react";
 import { clsx } from "clsx";
 import { api } from "@/lib/api";
@@ -48,17 +49,18 @@ type NavItem = { href: string; label: string; icon: typeof LayoutDashboard; admi
 // Branches only). perm = needs that granular right (admins always pass).
 const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, staffOnly: true, primary: true },
-  { href: "/pos", label: "POS Checkout", icon: ScanBarcode, staffOnly: true, primary: true },
+  { href: "/pos", label: "POS Checkout", icon: ScanBarcode, perm: "pos", primary: true },
+  { href: "/kitchen", label: "Kitchen", icon: Flame, perm: "kitchen", primary: true },
   { href: "/orders", label: "Online orders", icon: ShoppingBag, perm: "orders", primary: true },
-  { href: "/inventory", label: "Inventory", icon: Package, staffOnly: true, primary: true },
+  { href: "/inventory", label: "Inventory", icon: Package, perm: "inventory", primary: true },
   { href: "/purchasing", label: "Purchasing", icon: Truck, perm: "purchasing" },
-  { href: "/customers", label: "Customers", icon: Users, staffOnly: true },
-  { href: "/sales", label: "Sales", icon: ReceiptText, staffOnly: true },
+  { href: "/customers", label: "Customers", icon: Users, perm: "customers" },
+  { href: "/sales", label: "Sales", icon: ReceiptText, perm: "pos" },
   { href: "/warranty", label: "Warranty", icon: ShieldCheck, staffOnly: true, serialOnly: true },
   { href: "/reports", label: "Reports", icon: BarChart3, perm: "reports" },
-  { href: "/team", label: "Team", icon: UserCog, adminOnly: true },
+  { href: "/team", label: "Team", icon: UserCog, perm: "team" },
   { href: "/branches", label: "Branches", icon: Network, hubOnly: true },
-  { href: "/settings", label: "Settings", icon: Settings, adminOnly: true },
+  { href: "/settings", label: "Settings", icon: Settings, perm: "settings" },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
