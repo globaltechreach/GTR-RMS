@@ -220,38 +220,38 @@ function TaxLoyaltyTab({ settings }: { settings: ShopSettings }) {
   return (
     <div className="flex max-w-2xl flex-col gap-6">
       <Card className="p-6">
-        <h2 className="mb-4 text-base font-semibold text-foreground">GST / Tax</h2>
+        <h2 className="mb-4 text-base font-semibold text-foreground">VAT / Tax</h2>
         <div className="flex flex-col gap-4">
           <Toggle
-            label="Enable GST"
-            description="Apply per-product GST and show tax on receipts"
+            label="Enable VAT"
+            description="Apply per-product VAT (standard 5% in the UAE) and show tax on receipts"
             checked={form.gstEnabled}
             onChange={(v) => setForm((f) => ({ ...f, gstEnabled: v }))}
           />
           {form.gstEnabled && (
             <>
               <Toggle
-                label="Show GST breakdown on receipt"
+                label="Show VAT breakdown on receipt"
                 checked={form.showGst}
                 onChange={(v) => setForm((f) => ({ ...f, showGst: v }))}
               />
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Field
-                    label="GSTIN"
+                    label="TRN"
                     value={form.gstNumber ?? ""}
                     onChange={(e) => setForm((f) => ({ ...f, gstNumber: e.target.value.toUpperCase() }))}
                   />
                   {form.gstNumber && (
                     <p className={`mt-1 text-xs ${isValidGstinFormat(form.gstNumber) ? "text-success" : "text-warning"}`}>
                       {isValidGstinFormat(form.gstNumber)
-                        ? `Looks valid · ${gstStateFromGstin(form.gstNumber) ?? "unknown state code"}`
-                        : "Doesn't match the standard 15-character GSTIN format — double-check it"}
+                        ? "Format looks valid"
+                        : "Doesn't match the standard 15-character TRN format — double-check it"}
                     </p>
                   )}
                 </div>
                 <Field
-                  label="Default GST rate %"
+                  label="Default VAT rate %"
                   type="number"
                   min={0}
                   step="0.01"
@@ -261,7 +261,7 @@ function TaxLoyaltyTab({ settings }: { settings: ShopSettings }) {
               </div>
               <div>
                 <Field
-                  label="PAN"
+                  label="PAN (India only, optional)"
                   value={form.panNumber ?? ""}
                   onChange={(e) => setForm((f) => ({ ...f, panNumber: e.target.value.toUpperCase() }))}
                 />
