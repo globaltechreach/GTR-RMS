@@ -52,9 +52,9 @@ const fields = {
 // POST (onboarding, create-once): every field required or defaulted.
 const createSchema = z.object({
   ...fields,
-  currencyCode: fields.currencyCode.default('INR'),
-  gstEnabled: fields.gstEnabled.default(false),
-  defaultTaxRate: fields.defaultTaxRate.default(0),
+  currencyCode: fields.currencyCode.default('AED'),
+  gstEnabled: fields.gstEnabled.default(true),
+  defaultTaxRate: fields.defaultTaxRate.default(5),
   loyaltyEnabled: fields.loyaltyEnabled.default(false),
   pointsPerUnit: fields.pointsPerUnit.default(0),
   pointValue: fields.pointValue.default(0),
