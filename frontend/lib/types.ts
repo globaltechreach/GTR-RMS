@@ -265,3 +265,20 @@ export interface Supplier {
   gstin: string | null;
   notes: string | null;
 }
+
+export type TableStatus = "AVAILABLE" | "OCCUPIED" | "RESERVED" | "BILLING";
+
+export interface DiningTable {
+  id: number;
+  number: string;
+  name: string | null;
+  section: string | null;
+  seats: number;
+  status: TableStatus;
+  note: string | null;
+  active: boolean;
+  sortOrder: number;
+  openedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
