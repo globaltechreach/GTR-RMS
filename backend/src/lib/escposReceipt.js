@@ -130,7 +130,9 @@ function buildReceiptEscPos({ shop, invoice, width = 42 }) {
   if (shop.gstEnabled && shop.gstNumber) push(center(toPrinterText(`TRN: ${shop.gstNumber}`), width));
   push(rule(width));
   push(toPrinterText(date.toLocaleString()));
-  push(toPrinterText(`Bill: #${invoice.invoiceNumber}`));
+  push(toPrinterText(`Bill: #${invoice.invoiceNumber}`)
+  if (invoice.orderType) push(center(String(invoice.orderType).replace(/_/g, ' '), width));
+  if (invoice.tableNo) push(center(`Table ${invoice.tableNo}${invoice.covers ? ' · ' + invoice.covers + ' covers' : ''}`, width)););
   const cust = `Cust: ${invoice.customerName || 'Walk-in Customer'}${invoice.customerPhone ? ` - ${invoice.customerPhone}` : ''}`;
   for (const l of wrap(cust, width)) push(l);
   push(rule(width));
@@ -163,6 +165,8 @@ function buildReceiptEscPos({ shop, invoice, width = 42 }) {
     push(row('VAT', money(invoice.taxAmount), width));
     
   }
+  if (invoice.serviceCharge > 0) push(row('Service charge', money(invoice.serviceCharge), width));
+  if (invoice.tipAmount > 0) push(row('Tip', money(invoice.tipAmount), width));
   if (invoice.loyaltyDiscount > 0) {
     push(row(`Loyalty (${invoice.pointsRedeemed} pts)`, `-${money(invoice.loyaltyDiscount)}`, width));
   }
