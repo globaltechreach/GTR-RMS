@@ -25,6 +25,9 @@ export function can(user: AuthUser | undefined, perm: Permission): boolean {
   if (!user) return false;
   if (user.role === "admin" || user.role === "manager") return true;
   if (user.role === "franchisor") return perm === "reports";
+  // Role-implied rights (staff created before pos/kitchen permissions existed)
+  if (perm === "pos" && (user.role === "cashier" || user.role === "waiter")) return true;
+  if (perm === "kitchen" && user.role === "kitchen") return true;
   return user.permissions.includes(perm);
 }
 
