@@ -27,6 +27,11 @@ const checkoutSchema = z
     discountValue: z.number().min(0).default(0),
     pointsRedeemed: z.number().int().min(0).default(0),
     paymentMethod: z.enum(['CASH', 'UPI', 'CARD']).default('CASH'),
+    orderType: z.enum(['DINE_IN', 'TAKEAWAY', 'DELIVERY']).default('DINE_IN'),
+    tableNo: z.string().trim().max(20).optional().or(z.literal('')),
+    covers: z.number().int().min(0).max(500).optional().nullable(),
+    tipAmount: z.number().min(0).default(0),
+    tipPercent: z.number().min(0).max(100).optional(),
     amountPaid: z.number().min(0).default(0),
     // Old outstanding due the customer chooses to clear as part of this bill.
     // Added on top of the goods total for what the cashier collects.
@@ -216,7 +221,14 @@ async function performCheckoutOnce(body, ctx = {}) {
         settings,
       });
 
-      const saleTotal = computed.totalAmount;
+      const goodsTotal = computed.totalAmount;
+      const serviceCharge = round2(goodsTotal * (Math.max(0, Number(settings.serviceChargePercent) || 0) / 100));
+      let tipAmount = round2(Math.max(0, Number(body.tipAmount) || 0));
+      if (body.tipPercent != null && Number(body.tipPercent) > 0) {
+        tipAmount = round2(goodsTotal * (Math.min(100, Number(body.tipPercent)) / 100));
+      }
+      if (!settings.tipsEnabled) tipAmount = 0;
+      const saleTotal = round2(goodsTotal + serviceCharge + tipAmount);
 
       // Granular rights: a manual discount needs the 'discount' right and is
       // capped at the cashier's own limit (% of the pre-discount subtotal).
@@ -373,7 +385,12 @@ async function performCheckoutOnce(body, ctx = {}) {
           discountAmount: computed.discountAmount,
           taxAmount: computed.taxAmount,
           loyaltyDiscount: computed.loyaltyDiscount,
-          totalAmount: computed.totalAmount,
+          totalAmount: saleTotal,
+          serviceCharge,
+          tipAmount,
+          orderType: body.orderType || 'DINE_IN',
+          tableNo: body.tableNo || null,
+          covers: body.covers != null ? body.covers : null,
           paymentMethod,
           paymentRef: verifiedTerminal?.id ?? null,
           customerGstin: body.customerGstin || null,
