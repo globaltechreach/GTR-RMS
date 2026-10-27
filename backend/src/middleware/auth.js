@@ -90,8 +90,10 @@ function readSession(req) {
 }
 
 function requireAdmin(req, res, next) {
-  if (req.user?.role !== 'admin') {
-    return res.status(403).json({ error: 'Admin access required' });
+  // Managers run the restaurant day-to-day and may manage staff/settings;
+  // only franchisor and floor roles are blocked here.
+  if (req.user?.role !== 'admin' && req.user?.role !== 'manager') {
+    return res.status(403).json({ error: 'Admin or manager access required' });
   }
   next();
 }
