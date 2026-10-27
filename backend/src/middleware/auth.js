@@ -116,7 +116,11 @@ function hasPerm(user, perm) {
   if (!user) return false;
   if (user.role === 'admin' || user.role === 'manager') return true;
   if (user.role === 'franchisor') return perm === 'reports';
-  return Array.isArray(user.permissions) && user.permissions.includes(perm);
+  // Role-implied rights (also covers staff created before pos/kitchen existed)
+  if (perm === 'pos' && (user.role === 'cashier' || user.role === 'waiter')) return true;
+  if (perm === 'kitchen' && user.role === 'kitchen') return true;
+  const perms = Array.isArray(user.permissions) ? user.permissions : [];
+  return perms.includes(perm);
 }
 function requirePerm(perm) {
   return (req, res, next) => {
