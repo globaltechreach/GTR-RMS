@@ -36,7 +36,7 @@ function amountInWords(amount) {
 const fmtDate = (d) => new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
 async function buildInvoicePdf({ shop, invoice }) {
-  const sym = shop.currencySymbol || 'Rs.';
+  const sym = shop.currencySymbol || 'AED';
   // Core fonts have no ₹ glyph; the app's symbol for INR is already "Rs.".
   const money = (n) => `${sym} ${Number(n).toFixed(2)}`;
 
@@ -70,8 +70,8 @@ async function buildInvoicePdf({ shop, invoice }) {
     if (addr) doc.text(addr, { width: W * 0.6 });
     const contact = [shop.phone && `Ph: ${shop.phone}`, shop.email].filter(Boolean).join('  |  ');
     if (contact) doc.text(contact, { width: W * 0.6 });
-    if (shop.gstEnabled && shop.gstNumber) doc.text(`GSTIN: ${shop.gstNumber}`, { width: W * 0.6 });
-    if (shop.panNumber) doc.text(`PAN: ${shop.panNumber}`, { width: W * 0.6 });
+    if (shop.gstEnabled && shop.gstNumber) doc.text(`TRN: ${shop.gstNumber}`, { width: W * 0.6 });
+    if (shop.panNumber) doc.text(`PAN: ${shop.panNumber}`, { width: W * 0.6 }); // India-only optional field
     const leftEnd = doc.y;
 
     doc.font('Helvetica-Bold').fontSize(20).fillColor('#17251d').text(shop.gstEnabled ? 'TAX INVOICE' : 'INVOICE', L + W * 0.6, 40, { width: W * 0.4, align: 'right' });
@@ -98,7 +98,7 @@ async function buildInvoicePdf({ shop, invoice }) {
       { k: 'hsn', label: 'HSN', w: 62, align: 'left' },
       { k: 'qty', label: 'Qty', w: 48, align: 'right' },
       { k: 'rate', label: 'Rate', w: 70, align: 'right' },
-      { k: 'gst', label: 'GST', w: 48, align: 'right' },
+      { k: 'gst', label: 'VAT', w: 48, align: 'right' },
       { k: 'amt', label: 'Amount', w: 80, align: 'right' },
     ];
     const drawHeader = (yy) => {
@@ -165,8 +165,8 @@ async function buildInvoicePdf({ shop, invoice }) {
     if (invoice.discountAmount > 0) trow(invoice.discountType === 'percent' ? `Discount (${invoice.discountValue}%)` : 'Discount', `- ${money(invoice.discountAmount)}`);
     if (shop.gstEnabled && invoice.taxAmount > 0) {
       const half = Math.round((invoice.taxAmount / 2 + Number.EPSILON) * 100) / 100;
-      trow('CGST (incl.)', money(half));
-      trow('SGST (incl.)', money(invoice.taxAmount - half));
+      trow('VAT', money(invoice.taxAmount));
+      
     }
     if (invoice.loyaltyDiscount > 0) trow(`Loyalty (${invoice.pointsRedeemed} pts)`, `- ${money(invoice.loyaltyDiscount)}`);
     if (invoice.returnValue > 0) trow('Returns', `- ${money(invoice.returnValue)}`);
@@ -182,7 +182,7 @@ async function buildInvoicePdf({ shop, invoice }) {
     // left column beside totals
     let ly = y;
     doc.font('Helvetica-Bold').fontSize(8).fillColor(MUTED).text('AMOUNT IN WORDS', L, ly);
-    doc.font('Helvetica').fontSize(9).fillColor('#17251d').text(`${sym === 'Rs.' ? 'Rupees' : shop.currencyCode} ${amountInWords(payable)}`, L, ly + 11, { width: W * 0.5 });
+    doc.font('Helvetica').fontSize(9).fillColor('#17251d').text(`${shop.currencyCode || 'AED'} ${amountInWords(payable)}`, L, ly + 11, { width: W * 0.5 });
     ly = doc.y + 8;
     if (qrPng) {
       doc.image(qrPng, L, ly, { width: 76 });
