@@ -11,15 +11,20 @@ import { usePasswordConfirm } from "@/components/PasswordConfirm";
 import { useCreateUser, useMe, useUpdateUser, useUsers } from "@/hooks/useAuth";
 import { describeApiError } from "@/lib/api";
 import type { AuthUser, Permission, Role } from "@/lib/types";
+import { ROLE_DEFAULTS, ROLE_LABELS } from "@/lib/perm";
 
 const PERMS: { key: Permission; label: string; hint: string }[] = [
+  { key: "pos", label: "POS checkout", hint: "Take orders and payments" },
+  { key: "kitchen", label: "Kitchen display", hint: "View tickets / table orders" },
   { key: "discount", label: "Give discounts", hint: "Up to the limit below" },
   { key: "returns", label: "Process returns", hint: "Refunds, exchanges, store credit" },
-  { key: "inventory", label: "Edit inventory", hint: "Add/edit products, serials, stock" },
+  { key: "inventory", label: "Edit inventory", hint: "Add/edit products, menu items, stock" },
   { key: "customers", label: "Manage customers", hint: "" },
-  { key: "orders", label: "Handle online orders", hint: "Pack, hand over and bill" },
+  { key: "orders", label: "Online orders", hint: "Pack, hand over and bill" },
   { key: "purchasing", label: "Purchasing", hint: "Suppliers and purchase orders" },
-  { key: "reports", label: "View reports", hint: "Profit, margins, GST exports" },
+  { key: "reports", label: "View reports", hint: "Sales and VAT reports" },
+  { key: "settings", label: "Shop settings", hint: "Tax, printers, restaurant options" },
+  { key: "team", label: "Manage team", hint: "Add or edit staff logins" },
 ];
 const PASTELS = ["#e8f3ea", "#fdf0d5", "#e3eef9", "#f6e3ee", "#ece6f7", "#e0f3f0"];
 
@@ -44,12 +49,12 @@ export default function TeamPage() {
                 </div>
               </div>
               <div className="flex flex-wrap gap-1.5">
-                <Badge tone={u.role === "admin" ? "brand" : u.role === "franchisor" ? "warn" : "neutral"}>{u.role}</Badge>
+                <Badge tone={u.role === "admin" || u.role === "manager" ? "brand" : u.role === "franchisor" ? "warn" : u.role === "kitchen" ? "warn" : "neutral"}>{ROLE_LABELS[u.role] ?? u.role}</Badge>
                 {!u.active && <Badge tone="bad">disabled</Badge>}
-                {u.role === "cashier" && u.permissions.length === 0 && <Badge>sell only</Badge>}
+                {(u.role === "cashier" || u.role === "waiter") && u.permissions.length === 0 && <Badge>sell only</Badge>}
                 {u.role === "cashier" && u.maxDiscountPercent != null && <Badge tone="warn">≤ {u.maxDiscountPercent}% discount</Badge>}
               </div>
-              <p className="mt-auto text-xs text-foreground-muted">{u.role === "admin" ? "Full access" : u.role === "franchisor" ? "Read-only reports across branches" : `${u.permissions.length} extra permission${u.permissions.length === 1 ? "" : "s"}`}</p>
+              <p className="mt-auto text-xs text-foreground-muted">{u.role === "admin" || u.role === "manager" ? "Full access" : u.role === "franchisor" ? "Read-only reports across branches" : u.role === "kitchen" ? "Kitchen tickets only" : `${u.permissions.length} extra permission${u.permissions.length === 1 ? "" : "s"}`}</p>
             </button>
           </li>
         ))}
@@ -101,7 +106,10 @@ function MemberDrawer({ user, isSelf, onClose }: { user: AuthUser | null; isSelf
         <Field label={user ? "New password (leave blank to keep)" : "Password"} type="password" minLength={8} required={!user} value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" />
         <label className="flex flex-col gap-1.5 text-sm font-medium">Role
           <select value={role} disabled={isSelf} onChange={(e) => setRole(e.target.value as Role)} className="rounded-lg border border-border bg-surface px-3 py-2.5 text-sm">
+            <option value="manager">Manager</option>
             <option value="cashier">Cashier</option>
+            <option value="waiter">Waiter / Server</option>
+            <option value="kitchen">Kitchen</option>
             <option value="admin">Admin (everything)</option>
             <option value="franchisor">Franchisor (read-only, hub)</option>
           </select>
