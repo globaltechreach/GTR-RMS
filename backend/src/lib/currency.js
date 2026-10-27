@@ -3,11 +3,11 @@
 // This is a curated set of major/regionally-relevant currencies, not the
 // full ISO 4217 list.
 const CURRENCIES = {
-  INR: { symbol: 'Rs.', label: 'Indian Rupee' },
+  AED: { symbol: 'AED', label: 'UAE Dirham' },
   USD: { symbol: '$', label: 'US Dollar' },
   EUR: { symbol: '€', label: 'Euro' },
   GBP: { symbol: '£', label: 'British Pound' },
-  AED: { symbol: 'د.إ', label: 'UAE Dirham' },
+  INR: { symbol: 'Rs.', label: 'Indian Rupee' },
   AUD: { symbol: 'A$', label: 'Australian Dollar' },
   CAD: { symbol: 'C$', label: 'Canadian Dollar' },
   SGD: { symbol: 'S$', label: 'Singapore Dollar' },
