@@ -51,7 +51,7 @@ export default function TablesPage() {
   const [sectionFilter, setSectionFilter] = useState<string>("ALL");
   const [openNew, setOpenNew] = useState(false);
   const [edit, setEdit] = useState<DiningTable | null>(null);
-  const [form, setForm] = useState({ number: "", name: "", section: "Main", seats: 4 });
+  const [form, setForm] = useState({ number: "", name: "", section: "Main", seats: "4" });
 
   const sections = useMemo(() => {
     const s = new Set<string>();
@@ -87,11 +87,11 @@ export default function TablesPage() {
         number: form.number.trim(),
         name: form.name.trim() || undefined,
         section: form.section.trim() || "Main",
-        seats: Number(form.seats) || 4,
+        seats: Number(form.seats) || 4, // seats sent as number to API
       });
       show(`Table ${form.number} added`, "success");
       setOpenNew(false);
-      setForm({ number: "", name: "", section: "Main", seats: 4 });
+      setForm({ number: "", name: "", section: "Main", seats: "4" });
     } catch (e) {
       show(describeApiError(e), "error");
     }
@@ -271,7 +271,7 @@ export default function TablesPage() {
             <Field label="Table number" value={form.number} onChange={(e) => setForm((f) => ({ ...f, number: e.target.value }))} placeholder="e.g. 7" />
             <Field label="Name (optional)" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="Window booth" />
             <Field label="Section" value={form.section} onChange={(e) => setForm((f) => ({ ...f, section: e.target.value }))} />
-            <Field label="Seats" type="number" min={1} value={form.seats} onChange={(e) => setForm((f) => ({ ...f, seats: Number(e.target.value) }))} />
+            <Field label="Seats" type="number" min={1} value={form.seats} onChange={(e) => setForm((f) => ({ ...f, seats: e.target.value }))} />
             <Button onClick={onCreate} disabled={!form.number.trim() || createTable.isPending}>
               Save table
             </Button>
@@ -285,7 +285,7 @@ export default function TablesPage() {
             <Field label="Number" value={edit.number} onChange={(e) => setEdit({ ...edit, number: e.target.value })} />
             <Field label="Name" value={edit.name ?? ""} onChange={(e) => setEdit({ ...edit, name: e.target.value })} />
             <Field label="Section" value={edit.section ?? ""} onChange={(e) => setEdit({ ...edit, section: e.target.value })} />
-            <Field label="Seats" type="number" min={1} value={edit.seats} onChange={(e) => setEdit({ ...edit, seats: Number(e.target.value) })} />
+            <Field label="Seats" type="number" min={1} value={String(edit.seats)} onChange={(e) => setEdit({ ...edit, seats: Number(e.target.value) || 1 })} />
             <Field label="Note" value={edit.note ?? ""} onChange={(e) => setEdit({ ...edit, note: e.target.value })} />
             <div className="flex gap-2">
               <Button className="flex-1" onClick={saveEdit} disabled={updateTable.isPending}>
