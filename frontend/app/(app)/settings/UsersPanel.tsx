@@ -11,18 +11,15 @@ import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/Toast";
 import { usePasswordConfirm } from "@/components/PasswordConfirm";
-import { useUsers, useCreateUser, useUpdateUser } from "@/hooks/useAuth";
+import { useUsers, useCreateUser, useUpdateUser, useMe } from "@/hooks/useAuth";
 import { ROLE_DEFAULTS, ROLE_LABELS } from "@/lib/perm";
-import type { Role, Permission } from "@/lib/types";
-import { useMe } from "@/hooks/useAuth";
-import { ROLE_DEFAULTS, ROLE_LABELS } from "@/lib/perm";
-import type { Role, Permission } from "@/lib/types";
+import type { Role } from "@/lib/types";
 
 const createSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
   email: z.string().trim().toLowerCase().email("Enter a valid email"),
   password: z.string().min(8, "At least 8 characters"),
-  role: z.enum(["admin", "cashier"]),
+  role: z.enum(["admin", "manager", "cashier", "waiter", "kitchen", "franchisor"]),
 });
 type CreateForm = z.infer<typeof createSchema>;
 
@@ -45,7 +42,7 @@ export function UsersPanel() {
 
   async function onCreate(values: CreateForm) {
     const result = await withPasswordConfirm("create this staff login", (confirmPassword) =>
-      createUser.mutateAsync({ ...values, confirmPassword })
+      createUser.mutateAsync({ ...values, permissions: ROLE_DEFAULTS[values.role] || [], confirmPassword })
     );
     if (result) {
       show("Staff account created", "success");
@@ -112,7 +109,7 @@ export function UsersPanel() {
                     {u.id === me?.id && <span className="ml-2 text-xs text-foreground/40">(you)</span>}
                   </td>
                   <td className="py-2.5 pr-4 text-foreground/70">{u.email}</td>
-                  <td className="py-2.5 pr-4 capitalize text-foreground/70">{u.role}</td>
+                  <td className="py-2.5 pr-4 text-foreground/70">{ROLE_LABELS[u.role as Role] ?? u.role}</td>
                   <td className="py-2.5 pr-4">
                     <span
                       className={
