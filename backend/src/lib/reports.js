@@ -27,13 +27,13 @@ function parseRange(from, to, defaultDays = 30) {
 
 async function totalsFor(start, end) {
   const [inv] = await prisma.$queryRaw`
-    SELECT COUNT(*) AS bills, COALESCE(SUM(totalAmount),0) AS revenue, COALESCE(SUM(taxAmount),0) AS tax,
-           COALESCE(SUM(returnValue),0) AS returns, COALESCE(SUM(discountAmount),0) AS discounts
-    FROM Invoice WHERE createdAt >= ${start} AND createdAt < ${end}`;
+    SELECT COUNT(*) AS bills, COALESCE(SUM("totalAmount"),0) AS revenue, COALESCE(SUM("taxAmount"),0) AS tax,
+           COALESCE(SUM("returnValue"),0) AS returns, COALESCE(SUM("discountAmount"),0) AS discounts
+    FROM "Invoice" WHERE "createdAt" >= ${start} AND "createdAt" < ${end}`;
   const [cost] = await prisma.$queryRaw`
-    SELECT COALESCE(SUM(ii.costPrice * ii.quantity),0) AS cost, COALESCE(SUM(ii.total - ii.taxAmount),0) AS net
-    FROM InvoiceItem ii JOIN Invoice i ON i.id = ii.invoiceId
-    WHERE i.createdAt >= ${start} AND i.createdAt < ${end}`;
+    SELECT COALESCE(SUM(ii."costPrice" * ii."quantity"),0) AS cost, COALESCE(SUM(ii."total" - ii."taxAmount"),0) AS net
+    FROM "InvoiceItem" ii JOIN "Invoice" i ON i.id = ii."invoiceId"
+    WHERE i."createdAt" >= ${start} AND i."createdAt" < ${end}`;
   const bills = Number(inv.bills);
   const revenue = round2(Number(inv.revenue));
   const netSales = round2(Number(cost.net));
@@ -64,16 +64,16 @@ async function overview(from, to) {
     totalsFor(prevStart, start),
     prisma.invoice.findMany({ where: { createdAt: { gte: start, lt: end } }, select: { createdAt: true, totalAmount: true } }),
     prisma.$queryRaw`
-      SELECT COALESCE(p.category,'Uncategorised') AS category, SUM(ii.quantity) AS qty,
-             SUM(ii.total - ii.taxAmount) AS net, SUM(ii.costPrice * ii.quantity) AS cost
-      FROM InvoiceItem ii JOIN Invoice i ON i.id = ii.invoiceId JOIN Product p ON p.id = ii.productId
-      WHERE i.createdAt >= ${start} AND i.createdAt < ${end}
+      SELECT COALESCE(p.category,'Uncategorised') AS category, SUM(ii."quantity") AS qty,
+             SUM(ii."total" - ii."taxAmount") AS net, SUM(ii."costPrice" * ii."quantity") AS cost
+      FROM "InvoiceItem" ii JOIN "Invoice" i ON i.id = ii."invoiceId" JOIN "Product" p ON p.id = ii.productId
+      WHERE i."createdAt" >= ${start} AND i."createdAt" < ${end}
       GROUP BY COALESCE(p.category,'Uncategorised') ORDER BY net DESC`,
     prisma.$queryRaw`
-      SELECT ii.productId AS id, ii.name AS name, SUM(ii.quantity) AS qty,
-             SUM(ii.total - ii.taxAmount) AS net, SUM(ii.costPrice * ii.quantity) AS cost
-      FROM InvoiceItem ii JOIN Invoice i ON i.id = ii.invoiceId
-      WHERE i.createdAt >= ${start} AND i.createdAt < ${end}
+      SELECT ii.productId AS id, ii.name AS name, SUM(ii."quantity") AS qty,
+             SUM(ii."total" - ii."taxAmount") AS net, SUM(ii."costPrice" * ii."quantity") AS cost
+      FROM "InvoiceItem" ii JOIN "Invoice" i ON i.id = ii."invoiceId"
+      WHERE i."createdAt" >= ${start} AND i."createdAt" < ${end}
       GROUP BY ii.productId, ii.name ORDER BY net DESC LIMIT 15`,
   ]);
 
@@ -82,12 +82,12 @@ async function overview(from, to) {
   for (let d = new Date(start); d < end; d.setDate(d.getDate() + 1)) daily.set(dayKey(d), { date: dayKey(d), revenue: 0, bills: 0 });
   const heat = Array.from({ length: 7 }, () => Array.from({ length: 24 }, () => ({ bills: 0, revenue: 0 })));
   for (const i of invoices) {
-    const b = daily.get(dayKey(i.createdAt));
+    const b = daily.get(dayKey(i."createdAt"));
     if (b) {
       b.revenue = round2(b.revenue + i.totalAmount);
       b.bills += 1;
     }
-    const d = new Date(i.createdAt);
+    const d = new Date(i."createdAt");
     const cell = heat[d.getDay()][d.getHours()];
     cell.bills += 1;
     cell.revenue = round2(cell.revenue + i.totalAmount);
@@ -149,7 +149,7 @@ async function compare(period) {
 
 const csvCell = (v) => {
   const s = String(v ?? '');
-  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '"')}"` : s;
 };
 const toCsv = (rows) => rows.map((r) => r.map(csvCell).join(',')).join('\r\n');
 
@@ -162,10 +162,10 @@ async function gstr1(month) {
   const shopState = shop?.gstNumber?.slice(0, 2) || '';
 
   const lines = await prisma.$queryRaw`
-    SELECT i.id AS invId, i.invoiceNumber, i.createdAt, i.customerName, i.customerGstin, i.totalAmount,
-           ii.taxRate, ii.total, ii.taxAmount, ii.quantity, ii.unit, p.hsn AS hsn
-    FROM InvoiceItem ii JOIN Invoice i ON i.id = ii.invoiceId JOIN Product p ON p.id = ii.productId
-    WHERE i.createdAt >= ${start} AND i.createdAt < ${end} ORDER BY i.id`;
+    SELECT i.id AS invId, i.invoiceNumber, i."createdAt", i.customerName, i.customerGstin, i.totalAmount,
+           ii."taxRate", ii."total", ii."taxAmount", ii."quantity", ii.unit, p.hsn AS hsn
+    FROM "InvoiceItem" ii JOIN "Invoice" i ON i.id = ii."invoiceId" JOIN "Product" p ON p.id = ii.productId
+    WHERE i."createdAt" >= ${start} AND i."createdAt" < ${end} ORDER BY i.id`;
 
   const b2bMap = new Map();
   const b2csMap = new Map();
@@ -240,9 +240,9 @@ function gstr1Csv(report, section) {
 async function taxSummaryCsv(from, to) {
   const { start, end } = parseRange(from, to);
   const rows = await prisma.$queryRaw`
-    SELECT ii.taxRate AS rate, SUM(ii.total - ii.taxAmount) AS taxable, SUM(ii.taxAmount) AS tax, SUM(ii.total) AS gross
-    FROM InvoiceItem ii JOIN Invoice i ON i.id = ii.invoiceId
-    WHERE i.createdAt >= ${start} AND i.createdAt < ${end} GROUP BY ii.taxRate ORDER BY ii.taxRate`;
+    SELECT ii."taxRate" AS rate, SUM(ii."total" - ii."taxAmount") AS taxable, SUM(ii."taxAmount") AS tax, SUM(ii."total") AS gross
+    FROM "InvoiceItem" ii JOIN "Invoice" i ON i.id = ii."invoiceId"
+    WHERE i."createdAt" >= ${start} AND i."createdAt" < ${end} GROUP BY ii."taxRate" ORDER BY ii."taxRate"`;
   return toCsv([['Tax rate %', 'Taxable value', 'Tax', 'Gross'], ...rows.map((r) => [r.rate, round2(Number(r.taxable)), round2(Number(r.tax)), round2(Number(r.gross))])]);
 }
 
