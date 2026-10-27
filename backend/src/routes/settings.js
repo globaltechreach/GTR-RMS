@@ -47,6 +47,8 @@ const fields = {
   termsText: z.string().trim().max(600).optional().or(z.literal('')),
   cashDrawer: z.boolean(),
   serialTracking: z.boolean(),
+  serviceChargePercent: z.number().min(0).max(100),
+  tipsEnabled: z.boolean(),
 };
 
 // POST (onboarding, create-once): every field required or defaulted.
@@ -68,6 +70,8 @@ const createSchema = z.object({
   invoiceLayout: fields.invoiceLayout.default('receipt'),
   cashDrawer: fields.cashDrawer.default(false),
   serialTracking: fields.serialTracking.default(false),
+  serviceChargePercent: fields.serviceChargePercent.default(0),
+  tipsEnabled: fields.tipsEnabled.default(true),
 });
 
 // PUT (partial update): no defaults anywhere, so an omitted key is simply
