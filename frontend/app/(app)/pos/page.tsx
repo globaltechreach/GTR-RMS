@@ -1019,16 +1019,6 @@ export default function PosPage() {
           </Card>
         </div>
       </div>
-    </div>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between text-sm">
-      <span className="text-foreground/60">{label}</span>
-      <span className="text-foreground">{value}</span>
-    </div>
 
       {quickOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog">
@@ -1046,5 +1036,15 @@ function Row({ label, value }: { label: string; value: string }) {
         </div>
       )}
 
+    </div>
+  );
+}
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between text-sm">
+      <span className="text-foreground/60">{label}</span>
+      <span className="text-foreground">{value}</span>
+    </div>
   );
 }
