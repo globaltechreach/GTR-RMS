@@ -44,7 +44,7 @@ export default function OnboardingPage() {
   const { data: currencies } = useCurrencies();
   const [step, setStep] = useState(0);
   const [serverError, setServerError] = useState<string | null>(null);
-  const [gstEnabled, setGstEnabled] = useState(false);
+  const [gstEnabled, setGstEnabled] = useState(true);
   const [loyaltyEnabled, setLoyaltyEnabled] = useState(false);
 
   const currencyOptions = Object.entries(currencies ?? {}).map(([value, c]) => ({
@@ -55,7 +55,7 @@ export default function OnboardingPage() {
   const accountForm = useForm<AccountForm>({ resolver: zodResolver(accountSchema) });
   const shopForm = useForm<ShopForm>({
     resolver: zodResolver(shopSchema),
-    defaultValues: { currencyCode: "INR", lowStockAlert: 5, defaultTaxRate: 0 },
+    defaultValues: { currencyCode: "AED", lowStockAlert: 5, defaultTaxRate: 5 },
   });
 
   async function onAccountSubmit(values: AccountForm) {
@@ -90,8 +90,8 @@ export default function OnboardingPage() {
       <Card className="w-full max-w-lg p-8">
         <div className="mb-8 flex flex-col items-center gap-3 text-center">
           <Image src="/logo.png" alt="nodedr-pos" width={64} height={64} className="h-16 w-16 rounded-full" priority />
-          <h1 className="text-xl font-semibold text-foreground">Welcome to nodedr-pos</h1>
-          <p className="text-sm text-foreground/60">Let&apos;s set up your shop.</p>
+          <h1 className="text-xl font-semibold text-foreground">Welcome to GTR-RMS</h1>
+          <p className="text-sm text-foreground/60">Let&apos;s set up your restaurant.</p>
         </div>
 
         <ol className="mb-8 flex items-center justify-center gap-2" aria-label="Onboarding progress">
@@ -151,7 +151,19 @@ export default function OnboardingPage() {
             <Field label="Address line 2" {...shopForm.register("address2")} />
             <div className="grid grid-cols-2 gap-4">
               <Field label="City" {...shopForm.register("city")} />
-              <Field label="State" {...shopForm.register("state")} />
+              <Select
+                label="Emirate"
+                options={[
+                  { value: "Dubai", label: "Dubai" },
+                  { value: "Abu Dhabi", label: "Abu Dhabi" },
+                  { value: "Sharjah", label: "Sharjah" },
+                  { value: "Ajman", label: "Ajman" },
+                  { value: "Umm Al Quwain", label: "Umm Al Quwain" },
+                  { value: "Ras Al Khaimah", label: "Ras Al Khaimah" },
+                  { value: "Fujairah", label: "Fujairah" },
+                ]}
+                {...shopForm.register("state")}
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <Field label="Phone" {...shopForm.register("phone")} />
@@ -167,16 +179,16 @@ export default function OnboardingPage() {
 
             <div className="rounded-lg border border-border p-4">
               <Toggle
-                label="Enable GST / tax"
-                description="Charge per-product GST and show a tax breakdown on bills"
+                label="Enable VAT"
+                description="Charge per-product VAT (standard 5% in the UAE) and show tax on bills"
                 checked={gstEnabled}
                 onChange={setGstEnabled}
               />
               {gstEnabled && (
                 <div className="mt-4 grid grid-cols-2 gap-4">
-                  <Field label="GSTIN (optional)" {...shopForm.register("gstNumber")} />
+                  <Field label="TRN (optional)" placeholder="15-digit Tax Registration Number" {...shopForm.register("gstNumber")} />
                   <Field
-                    label="Default GST rate %"
+                    label="Default VAT rate %"
                     type="number"
                     min={0}
                     step="0.01"
