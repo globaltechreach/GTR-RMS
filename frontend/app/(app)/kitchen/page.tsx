@@ -56,7 +56,7 @@ export default function KitchenPage() {
       />
       {isLoading && <p className="text-foreground-muted">Loading tickets…</p>}
       {!isLoading && tickets.length === 0 && (
-        <EmptyState icon={Flame} title="No tickets yet" description="Completed POS sales will show here with items and table numbers." />
+        <EmptyState icon={<Flame className="h-8 w-8" aria-hidden="true" />} title="No tickets yet" hint="Completed POS sales will show here with items and table numbers." />
       )}
       <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {tickets.map((inv) => (
