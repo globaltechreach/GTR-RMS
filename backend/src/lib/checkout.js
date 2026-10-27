@@ -489,6 +489,17 @@ async function performCheckoutOnce(body, ctx = {}) {
         });
       }
 
+      // Free matching floor table after a successful dine-in bill
+      if (body.tableNo && (body.orderType || 'DINE_IN') === 'DINE_IN') {
+        try {
+          await tx.diningTable.updateMany({
+            where: { number: String(body.tableNo).trim(), active: true },
+            data: { status: 'AVAILABLE', openedAt: null },
+          });
+        } catch (_) {
+          /* tables feature may not be migrated yet on old DBs */
+        }
+      }
       return { created, restockProductIds: [...restock.keys()] };
     });
 
