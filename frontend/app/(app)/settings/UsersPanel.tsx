@@ -12,7 +12,11 @@ import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/Toast";
 import { usePasswordConfirm } from "@/components/PasswordConfirm";
 import { useUsers, useCreateUser, useUpdateUser } from "@/hooks/useAuth";
+import { ROLE_DEFAULTS, ROLE_LABELS } from "@/lib/perm";
+import type { Role, Permission } from "@/lib/types";
 import { useMe } from "@/hooks/useAuth";
+import { ROLE_DEFAULTS, ROLE_LABELS } from "@/lib/perm";
+import type { Role, Permission } from "@/lib/types";
 
 const createSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
@@ -35,7 +39,7 @@ export function UsersPanel() {
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<CreateForm>({ resolver: zodResolver(createSchema), defaultValues: { role: "cashier" } });
+  } = useForm<CreateForm>({ resolver: zodResolver(createSchema), defaultValues: { role: "cashier" as Role } });
 
   const [showForm, setShowForm] = useState(false);
 
@@ -45,7 +49,7 @@ export function UsersPanel() {
     );
     if (result) {
       show("Staff account created", "success");
-      reset({ role: "cashier" });
+      reset({ role: "cashier" as Role });
       setShowForm(false);
     }
   }
