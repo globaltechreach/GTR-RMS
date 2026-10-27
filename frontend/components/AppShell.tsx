@@ -28,6 +28,7 @@ import {
   Network,
   MoreHorizontal,
   Flame,
+  LayoutGrid,
 } from "lucide-react";
 import { clsx } from "clsx";
 import { api } from "@/lib/api";
@@ -50,6 +51,7 @@ type NavItem = { href: string; label: string; icon: typeof LayoutDashboard; admi
 const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, staffOnly: true, primary: true },
   { href: "/pos", label: "POS Checkout", icon: ScanBarcode, perm: "pos", primary: true },
+  { href: "/tables", label: "Tables", icon: LayoutGrid, perm: "pos", primary: true },
   { href: "/kitchen", label: "Kitchen", icon: Flame, perm: "kitchen", primary: true },
   { href: "/orders", label: "Online orders", icon: ShoppingBag, perm: "orders", primary: true },
   { href: "/inventory", label: "Inventory", icon: Package, perm: "inventory", primary: true },
