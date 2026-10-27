@@ -32,7 +32,7 @@ async function totalsFor(start, end) {
     FROM "Invoice" WHERE "createdAt" >= ${start} AND "createdAt" < ${end}`;
   const [cost] = await prisma.$queryRaw`
     SELECT COALESCE(SUM(ii."costPrice" * ii."quantity"),0) AS cost, COALESCE(SUM(ii."total" - ii."taxAmount"),0) AS net
-    FROM "InvoiceItem" ii JOIN "Invoice" i ON i.id = ii."invoiceId"
+    FROM "InvoiceItem" ii JOIN "Invoice" i ON i."id" = ii."invoiceId"
     WHERE i."createdAt" >= ${start} AND i."createdAt" < ${end}`;
   const bills = Number(inv.bills);
   const revenue = round2(Number(inv.revenue));
@@ -64,17 +64,17 @@ async function overview(from, to) {
     totalsFor(prevStart, start),
     prisma.invoice.findMany({ where: { createdAt: { gte: start, lt: end } }, select: { createdAt: true, totalAmount: true } }),
     prisma.$queryRaw`
-      SELECT COALESCE(p.category,'Uncategorised') AS category, SUM(ii."quantity") AS qty,
+      SELECT COALESCE(p."category",'Uncategorised') AS category, SUM(ii."quantity") AS qty,
              SUM(ii."total" - ii."taxAmount") AS net, SUM(ii."costPrice" * ii."quantity") AS cost
-      FROM "InvoiceItem" ii JOIN "Invoice" i ON i.id = ii."invoiceId" JOIN "Product" p ON p.id = ii.productId
+      FROM "InvoiceItem" ii JOIN "Invoice" i ON i."id" = ii."invoiceId" JOIN "Product" p ON p."id" = ii."productId"
       WHERE i."createdAt" >= ${start} AND i."createdAt" < ${end}
-      GROUP BY COALESCE(p.category,'Uncategorised') ORDER BY net DESC`,
+      GROUP BY COALESCE(p."category",'Uncategorised') ORDER BY net DESC`,
     prisma.$queryRaw`
-      SELECT ii.productId AS id, ii.name AS name, SUM(ii."quantity") AS qty,
+      SELECT ii."productId" AS id, ii."name" AS name, SUM(ii."quantity") AS qty,
              SUM(ii."total" - ii."taxAmount") AS net, SUM(ii."costPrice" * ii."quantity") AS cost
-      FROM "InvoiceItem" ii JOIN "Invoice" i ON i.id = ii."invoiceId"
+      FROM "InvoiceItem" ii JOIN "Invoice" i ON i."id" = ii."invoiceId"
       WHERE i."createdAt" >= ${start} AND i."createdAt" < ${end}
-      GROUP BY ii.productId, ii.name ORDER BY net DESC LIMIT 15`,
+      GROUP BY ii."productId", ii."name" ORDER BY net DESC LIMIT 15`,
   ]);
 
   // daily series (zero-filled) + hour x weekday heatmap, local time
@@ -84,13 +84,13 @@ async function overview(from, to) {
   for (const i of invoices) {
     const b = daily.get(dayKey(i."createdAt"));
     if (b) {
-      b.revenue = round2(b.revenue + i.totalAmount);
+      b.revenue = round2(b.revenue + i."totalAmount");
       b.bills += 1;
     }
     const d = new Date(i."createdAt");
     const cell = heat[d.getDay()][d.getHours()];
     cell.bills += 1;
-    cell.revenue = round2(cell.revenue + i.totalAmount);
+    cell.revenue = round2(cell.revenue + i."totalAmount");
   }
   const shape = (r) => {
     const net = round2(Number(r.net));
@@ -162,10 +162,10 @@ async function gstr1(month) {
   const shopState = shop?.gstNumber?.slice(0, 2) || '';
 
   const lines = await prisma.$queryRaw`
-    SELECT i.id AS invId, i.invoiceNumber, i."createdAt", i.customerName, i.customerGstin, i.totalAmount,
-           ii."taxRate", ii."total", ii."taxAmount", ii."quantity", ii.unit, p.hsn AS hsn
-    FROM "InvoiceItem" ii JOIN "Invoice" i ON i.id = ii."invoiceId" JOIN "Product" p ON p.id = ii.productId
-    WHERE i."createdAt" >= ${start} AND i."createdAt" < ${end} ORDER BY i.id`;
+    SELECT i."id" AS invId, i."invoiceNumber", i."createdAt", i."customerName", i."customerGstin", i."totalAmount",
+           ii."taxRate", ii."total", ii."taxAmount", ii."quantity", ii."unit", p."hsn" AS hsn
+    FROM "InvoiceItem" ii JOIN "Invoice" i ON i."id" = ii."invoiceId" JOIN "Product" p ON p."id" = ii."productId"
+    WHERE i."createdAt" >= ${start} AND i."createdAt" < ${end} ORDER BY i."id"`;
 
   const b2bMap = new Map();
   const b2csMap = new Map();
@@ -241,7 +241,7 @@ async function taxSummaryCsv(from, to) {
   const { start, end } = parseRange(from, to);
   const rows = await prisma.$queryRaw`
     SELECT ii."taxRate" AS rate, SUM(ii."total" - ii."taxAmount") AS taxable, SUM(ii."taxAmount") AS tax, SUM(ii."total") AS gross
-    FROM "InvoiceItem" ii JOIN "Invoice" i ON i.id = ii."invoiceId"
+    FROM "InvoiceItem" ii JOIN "Invoice" i ON i."id" = ii."invoiceId"
     WHERE i."createdAt" >= ${start} AND i."createdAt" < ${end} GROUP BY ii."taxRate" ORDER BY ii."taxRate"`;
   return toCsv([['Tax rate %', 'Taxable value', 'Tax', 'Gross'], ...rows.map((r) => [r.rate, round2(Number(r.taxable)), round2(Number(r.tax)), round2(Number(r.gross))])]);
 }
