@@ -88,12 +88,41 @@ export default function PosPage() {
   // hit the API on every keystroke; setState lives in the timeout callback (not
   // the effect body) to satisfy the React Compiler lint rules.
   const [manualQuery, setManualQuery] = useState("");
+  const [manualFocused, setManualFocused] = useState(false);
+  const [quickOpen, setQuickOpen] = useState(false);
+  const [quickName, setQuickName] = useState("");
+  const [quickPrice, setQuickPrice] = useState("");
   const [committedQuery, setCommittedQuery] = useState("");
   useEffect(() => {
     const t = setTimeout(() => setCommittedQuery(manualQuery.trim()), 200);
     return () => clearTimeout(t);
   }, [manualQuery]);
   const { data: manualResults } = useProducts(committedQuery);
+
+  async function createQuickItem() {
+    const name = quickName.trim();
+    const sellingPrice = Number(quickPrice);
+    if (!name || !(sellingPrice >= 0)) {
+      show("Enter a name and price", "error");
+      return;
+    }
+    try {
+      const p = await api.post<Product>("/products/quick", {
+        name,
+        sellingPrice,
+        taxRate: shop?.defaultTaxRate ?? 5,
+      });
+      addToCart(p);
+      setQuickOpen(false);
+      setQuickName("");
+      setQuickPrice("");
+      setManualQuery("");
+      show(`Added ${p.name}`, "success");
+    } catch (e) {
+      show(e instanceof ApiError ? e.message : "Could not create item", "error");
+    }
+  }
+
 
   const sym = shop?.currencySymbol || "Rs.";
   const money = (n: number) => formatMoney(n, sym);
@@ -502,8 +531,10 @@ export default function PosPage() {
                 type="text"
                 value={manualQuery}
                 onChange={(e) => setManualQuery(e.target.value)}
-                placeholder="Scanner not working? Type a product name or barcode to add…"
+                placeholder="Type a product name or barcode — or browse the list…"
                 aria-label="Add product manually"
+                onFocus={() => setManualFocused(true)}
+                onBlur={() => setTimeout(() => setManualFocused(false), 200)}
                 className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-foreground/40"
               />
               {manualQuery && (
@@ -517,14 +548,19 @@ export default function PosPage() {
                 </button>
               )}
             </div>
-            {committedQuery && (
+            {(committedQuery || manualFocused) && (
               <div className="absolute z-20 mt-1 max-h-72 w-full overflow-auto rounded-lg border border-border bg-surface shadow-lg">
                 {!manualResults ? (
                   <p className="px-3 py-2.5 text-sm text-foreground/50">Searching…</p>
-                ) : manualResults.length === 0 ? (
-                  <p className="px-3 py-2.5 text-sm text-foreground/50">No products match &ldquo;{committedQuery}&rdquo;.</p>
+                ) : (manualResults?.length ?? 0) === 0 ? (
+                  <div className="px-3 py-2.5 text-sm text-foreground/50">
+                    {committedQuery ? <>No products match &ldquo;{committedQuery}&rdquo;.</> : <>No products yet.</>}
+                    <button type="button" className="mt-2 block text-brand underline" onMouseDown={(e) => { e.preventDefault(); setQuickOpen(true); }}>
+                      + Add new item
+                    </button>
+                  </div>
                 ) : (
-                  manualResults.slice(0, 8).map((p) => {
+                  manualResults.slice(0, 20).map((p) => {
                     const outOfStock = p.stock <= 0 && !shop?.allowNegativeStock;
                     return (
                       <button
@@ -555,7 +591,7 @@ export default function PosPage() {
           </div>
 
           {cart.length === 0 ? (
-            <p className="py-10 text-center text-sm text-foreground/50">Cart is empty. Scan a product to begin.</p>
+            <p className="py-10 text-center text-sm text-foreground/50">Cart is empty. Search above, pick from the list, or add a new item.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-max text-left text-sm">
@@ -993,5 +1029,22 @@ function Row({ label, value }: { label: string; value: string }) {
       <span className="text-foreground/60">{label}</span>
       <span className="text-foreground">{value}</span>
     </div>
+
+      {quickOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog">
+          <div className="w-full max-w-sm rounded-xl border border-border bg-surface p-5 shadow-xl">
+            <h3 className="mb-3 text-base font-semibold">Add new item</h3>
+            <div className="flex flex-col gap-3">
+              <Field label="Name" value={quickName} onChange={(e) => setQuickName(e.target.value)} placeholder="e.g. Chicken Biryani" />
+              <Field label="Price" type="number" min={0} step="0.01" value={quickPrice} onChange={(e) => setQuickPrice(e.target.value)} placeholder="0.00" />
+              <div className="flex gap-2">
+                <Button type="button" variant="secondary" className="flex-1" onClick={() => setQuickOpen(false)}>Cancel</Button>
+                <Button type="button" className="flex-1" onClick={createQuickItem}>Add to cart</Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
   );
 }
