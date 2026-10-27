@@ -289,6 +289,38 @@ function TaxLoyaltyTab({ settings }: { settings: ShopSettings }) {
           </Button>
         </div>
       </Card>
+      <Card className="p-6">
+        <h2 className="mb-4 text-base font-semibold text-foreground">Restaurant (UAE F&amp;B)</h2>
+        <div className="flex flex-col gap-4">
+          <Field
+            label="Service charge %"
+            type="number"
+            min={0}
+            max={100}
+            step="0.01"
+            value={(form as { serviceChargePercent?: number }).serviceChargePercent ?? 0}
+            onChange={(e) => setForm((f) => ({ ...f, serviceChargePercent: Number(e.target.value) }))}
+          />
+          <p className="text-xs text-foreground/50">Added on top of the bill. Use 0 to disable.</p>
+          <Toggle
+            label="Enable tips at checkout"
+            description="Cashiers can add a tip % or amount before payment"
+            checked={(form as { tipsEnabled?: boolean }).tipsEnabled !== false}
+            onChange={(v) => setForm((f) => ({ ...f, tipsEnabled: v }))}
+          />
+          <Button
+            className="self-start"
+            onClick={() =>
+              save({
+                serviceChargePercent: Number((form as { serviceChargePercent?: number }).serviceChargePercent) || 0,
+                tipsEnabled: (form as { tipsEnabled?: boolean }).tipsEnabled !== false,
+              })
+            }
+          >
+            Save restaurant settings
+          </Button>
+        </div>
+      </Card>
 
       <Card className="p-6">
         <h2 className="mb-4 text-base font-semibold text-foreground">Loyalty program</h2>
