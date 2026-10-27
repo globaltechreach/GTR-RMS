@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { LayoutGrid, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
-import { Select } from "@/components/ui/Select";
 import { Modal } from "@/components/ui/Modal";
 import { PageHeader, EmptyState, Badge } from "@/components/ui/Bits";
 import { useToast } from "@/components/Toast";
