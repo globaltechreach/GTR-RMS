@@ -40,7 +40,7 @@ export function InvoiceTab({ settings }: { settings: ShopSettings }) {
     <div className="flex max-w-2xl flex-col gap-6">
       <Card className="flex flex-col gap-4 p-6">
         <h2 className="text-base font-semibold">Bill style</h2>
-        <Select label="PDF bill layout" value={layout} onChange={(e) => setLayout(e.target.value as "receipt" | "a4")} options={[{ value: "receipt", label: "Receipt (80 mm thermal style)" }, { value: "a4", label: "A4 tax invoice (letterhead, GST breakup, warranty table)" }]} />
+        <Select label="PDF bill layout" value={layout} onChange={(e) => setLayout(e.target.value as "receipt" | "a4")} options={[{ value: "receipt", label: "Receipt (80 mm thermal style)" }, { value: "a4", label: "A4 tax invoice (letterhead, VAT breakup, warranty table)" }]} />
         <Field label="Signatory name (printed under the signature)" value={signatory} onChange={(e) => setSignatory(e.target.value)} maxLength={100} />
         <label className="flex flex-col gap-1.5 text-sm font-medium">Terms &amp; conditions (A4 invoice)
           <textarea value={terms} onChange={(e) => setTerms(e.target.value)} maxLength={600} rows={3} className="rounded-lg border border-border bg-surface px-3 py-2.5 text-sm" placeholder="e.g. Goods once sold will not be taken back. Warranty as per manufacturer." />
