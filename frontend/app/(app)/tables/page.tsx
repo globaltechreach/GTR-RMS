@@ -24,7 +24,7 @@ import { describeApiError } from "@/lib/api";
 
 const STATUS_META: Record<
   TableStatus,
-  { label: string; tone: "brand" | "warn" | "bad" | "neutral" | "success"; className: string }
+  { label: string; tone: "brand" | "warn" | "bad" | "neutral" | "good"; className: string }
 > = {
   AVAILABLE: { label: "Available", tone: "brand", className: "border-emerald-500/40 bg-emerald-500/10" },
   OCCUPIED: { label: "Occupied", tone: "bad", className: "border-rose-500/40 bg-rose-500/10" },
@@ -90,7 +90,7 @@ export default function TablesPage() {
         section: form.section.trim() || "Main",
         seats: Number(form.seats) || 4,
       });
-      show(`Table ${form.number} added`, "success");
+      show(`Table ${form.number} added`, "good");
       setOpenNew(false);
       setForm({ number: "", name: "", section: "Main", seats: 4 });
     } catch (e) {
@@ -101,7 +101,7 @@ export default function TablesPage() {
   async function onStatus(t: DiningTable, status: TableStatus) {
     try {
       await setStatus.mutateAsync({ id: t.id, status });
-      show(`Table ${t.number} → ${STATUS_META[status].label}`, "success");
+      show(`Table ${t.number} → ${STATUS_META[status].label}`, "good");
     } catch (e) {
       show(describeApiError(e), "error");
     }
@@ -111,7 +111,7 @@ export default function TablesPage() {
     if (!confirm(`Remove table ${t.number}?`)) return;
     try {
       await deleteTable.mutateAsync(t.id);
-      show(`Table ${t.number} removed`, "success");
+      show(`Table ${t.number} removed`, "good");
     } catch (e) {
       show(describeApiError(e), "error");
     }
@@ -120,7 +120,7 @@ export default function TablesPage() {
   async function onSeed() {
     try {
       const res = await seedTables.mutateAsync({ count: 12, section: "Main", seats: 4 });
-      show(`Created ${res.created} tables`, "success");
+      show(`Created ${res.created} tables`, "good");
     } catch (e) {
       show(describeApiError(e), "error");
     }
@@ -137,7 +137,7 @@ export default function TablesPage() {
         seats: edit.seats,
         note: edit.note,
       });
-      show("Table updated", "success");
+      show("Table updated", "good");
       setEdit(null);
     } catch (e) {
       show(describeApiError(e), "error");
