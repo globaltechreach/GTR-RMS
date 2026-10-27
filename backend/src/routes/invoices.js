@@ -10,6 +10,9 @@ router.use(requireAuth);
 // POST /api/invoices — finalize a sale (see lib/checkout.js: everything
 // money-related is computed server-side; fully transactional).
 router.post('/', async (req, res) => {
+  if (!hasPerm(req.user, 'pos')) {
+    return res.status(403).json({ error: 'You do not have POS access', code: 'PERMISSION_DENIED' });
+  }
   const parsed = checkoutSchema.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json({ error: 'Invalid input', details: parsed.error.flatten() });
