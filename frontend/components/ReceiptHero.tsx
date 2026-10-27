@@ -1,7 +1,7 @@
 const LINE_ITEMS = [
   { qty: 1, label: "Offline POS software", price: "0.00" },
   { qty: 1, label: "Inventory & billing", price: "0.00" },
-  { qty: 1, label: "GST invoicing (India)", price: "0.00" },
+  { qty: 1, label: "VAT invoicing (India)", price: "0.00" },
   { qty: 1, label: "Barcode scanning", price: "0.00" },
 ];
 
