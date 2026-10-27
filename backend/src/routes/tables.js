@@ -28,12 +28,20 @@ router.get('/', async (req, res) => {
   if (!canUseTables(req.user)) {
     return res.status(403).json({ error: 'No access to tables', code: 'PERMISSION_DENIED' });
   }
-  const includeInactive = req.query.all === '1';
-  const tables = await prisma.diningTable.findMany({
-    where: includeInactive ? undefined : { active: true },
-    orderBy: [{ sortOrder: 'asc' }, { number: 'asc' }],
-  });
-  res.json(tables);
+  try {
+    const includeInactive = req.query.all === '1';
+    const tables = await prisma.diningTable.findMany({
+      where: includeInactive ? undefined : { active: true },
+      orderBy: [{ sortOrder: 'asc' }, { number: 'asc' }],
+    });
+    res.json(tables);
+  } catch (err) {
+    console.error('tables list', err);
+    res.status(503).json({
+      error: 'Tables are not ready on the server. Redeploy the backend so prisma db push creates the DiningTable table.',
+      code: 'TABLES_UNAVAILABLE',
+    });
+  }
 });
 
 // POST /api/tables
