@@ -127,7 +127,7 @@ function buildReceiptEscPos({ shop, invoice, width = 42 }) {
   const cityState = [shop.city, shop.state].filter(Boolean).join(', ');
   if (cityState) push(center(toPrinterText(cityState), width));
   if (shop.phone) push(center(toPrinterText(`Ph: ${shop.phone}`), width));
-  if (shop.gstEnabled && shop.gstNumber) push(center(toPrinterText(`GSTIN: ${shop.gstNumber}`), width));
+  if (shop.gstEnabled && shop.gstNumber) push(center(toPrinterText(`TRN: ${shop.gstNumber}`), width));
   push(rule(width));
   push(toPrinterText(date.toLocaleString()));
   push(toPrinterText(`Bill: #${invoice.invoiceNumber}`));
@@ -147,7 +147,7 @@ function buildReceiptEscPos({ shop, invoice, width = 42 }) {
     const qty = `${item.quantity}${item.unit ? ` ${item.unit}` : ''}`;
     push(row(`  ${qty} x ${money(item.price)}`, money(item.price * item.quantity), width));
     if (shop.gstEnabled && shop.showGst && item.taxRate > 0) {
-      push(`  GST @ ${item.taxRate}%`);
+      push(`  VAT @ ${item.taxRate}%`);
     }
     for (const s of item.serials || []) push(`  S/N ${s.serial}`);
   }
@@ -160,8 +160,8 @@ function buildReceiptEscPos({ shop, invoice, width = 42 }) {
   }
   if (shop.gstEnabled && invoice.taxAmount > 0) {
     const half = Math.round((invoice.taxAmount / 2 + Number.EPSILON) * 100) / 100;
-    push(row('CGST (incl.)', money(half), width));
-    push(row('SGST (incl.)', money(invoice.taxAmount - half), width));
+    push(row('VAT', money(invoice.taxAmount), width));
+    
   }
   if (invoice.loyaltyDiscount > 0) {
     push(row(`Loyalty (${invoice.pointsRedeemed} pts)`, `-${money(invoice.loyaltyDiscount)}`, width));
