@@ -33,13 +33,13 @@ model ShopSettings {
   phone          String?
   email          String?
   // Currency
-  currencyCode   String   @default("INR") // INR | USD | EUR | GBP
-  currencySymbol String   @default("Rs.")
+  currencyCode   String   @default("AED") // AED | USD | EUR | INR | ...
+  currencySymbol String   @default("AED")
   // Tax / GST
-  gstEnabled     Boolean  @default(false)
+  gstEnabled     Boolean  @default(true)
   gstNumber      String?
   panNumber      String?
-  defaultTaxRate Float    @default(0)
+  defaultTaxRate Float    @default(5)
   // Loyalty
   loyaltyEnabled Boolean  @default(false)
   pointsPerUnit  Float    @default(0) // points earned per 1 currency unit spent
