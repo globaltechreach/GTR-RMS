@@ -199,7 +199,6 @@ module.exports = {
   requireAdmin,
   requirePerm,
   hasPerm,
-  PERMISSIONS,
   requirePasswordConfirm,
   verifyPassword,
   readSession,
