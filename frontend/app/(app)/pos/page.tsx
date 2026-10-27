@@ -49,6 +49,11 @@ export default function PosPage() {
   const [discountValue, setDiscountValue] = useState(0);
   const [pointsRedeemed, setPointsRedeemed] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("CASH");
+  const [orderType, setOrderType] = useState<"DINE_IN" | "TAKEAWAY" | "DELIVERY">("DINE_IN");
+  const [tableNo, setTableNo] = useState("");
+  const [covers, setCovers] = useState("");
+  const [tipAmount, setTipAmount] = useState("");
+  const [tipPercent, setTipPercent] = useState<number | null>(null);
   const [amountPaid, setAmountPaid] = useState("");
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [completedSale, setCompletedSale] = useState<{ id: number; invoiceNumber: string; totalAmount: number } | null>(
@@ -93,10 +98,15 @@ export default function PosPage() {
   // Store credit only ever reduces what's payable — never enough to create a
   // refund on its own — so cap it at the sale-minus-returns amount.
   const creditUse = useCredit ? round2(Math.min(creditAvail, Math.max(0, quote.total - returnTotal))) : 0;
+  const serviceChargeAmt = round2(quote.total * (Math.max(0, Number(shop?.serviceChargePercent) || 0) / 100));
+  const tipAmt = tipPercent != null
+    ? round2(quote.total * (tipPercent / 100))
+    : round2(Math.max(0, Number(tipAmount) || 0));
+  const tipAmtFinal = shop?.tipsEnabled === false ? 0 : tipAmt;
 
   // Net the returns and credit against the sale. Positive → the customer pays;
   // negative → the shop owes them (refund).
-  const netBill = round2(quote.total - returnTotal - creditUse);
+  const netBill = round2(quote.total + serviceChargeAmt + tipAmtFinal - returnTotal - creditUse);
   const payable = Math.max(0, netBill);
   const grossRefund = Math.max(0, round2(-netBill));
 
@@ -224,6 +234,11 @@ export default function PosPage() {
     setDiscountValue(0);
     setPointsRedeemed(0);
     setPaymentMethod("CASH");
+    setOrderType("DINE_IN");
+    setTableNo("");
+    setCovers("");
+    setTipAmount("");
+    setTipPercent(null);
     setAmountPaid("");
     setGstin("");
     setPayCurrency("");
@@ -323,7 +338,7 @@ export default function PosPage() {
       setIsCheckingOut(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gstin, payCurrency, fxRate, terminalPaymentId, shop?.cashDrawer, cart, returnLines, refundMode, creditUse, customerName, customerPhone, discountType, discountValue, pointsRedeemed, paymentMethod, amountPaid, dueToClear, canFinalize, isCheckingOut, queryClient, show, withPasswordConfirm, shop?.autoPrintReceipt, shop?.autoPrintMethod]);
+  }, [gstin, payCurrency, fxRate, terminalPaymentId, shop?.cashDrawer, cart, returnLines, refundMode, creditUse, customerName, customerPhone, discountType, discountValue, pointsRedeemed, paymentMethod, amountPaid, dueToClear, canFinalize, isCheckingOut, queryClient, show, withPasswordConfirm, shop?.autoPrintReceipt, shop?.autoPrintMethod, orderType, tableNo, covers, tipAmtFinal, tipPercent, serviceChargeAmt]);
 
   useBarcodeScanner({
     onScan: handleScan,
@@ -752,9 +767,68 @@ export default function PosPage() {
               />
             </div>
 
-            <h2 className="mt-2 text-base font-semibold text-foreground">Payment</h2>
+            
+            <h2 className="mt-2 text-base font-semibold text-foreground">Order</h2>
             <div className="grid grid-cols-3 gap-2">
-              {(["CASH", "UPI", "CARD"] as PaymentMethod[]).map((m) => (
+              {([
+                ["DINE_IN", "Dine-in"],
+                ["TAKEAWAY", "Takeaway"],
+                ["DELIVERY", "Delivery"],
+              ] as const).map(([v, label]) => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setOrderType(v)}
+                  className={`rounded-lg border px-2 py-2 text-sm font-medium transition ${
+                    orderType === v
+                      ? "border-brand bg-brand text-brand-foreground"
+                      : "border-border text-foreground/70 hover:bg-surface-muted"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            {orderType === "DINE_IN" && (
+              <div className="grid grid-cols-2 gap-2">
+                <Field label="Table" value={tableNo} onChange={(e) => setTableNo(e.target.value)} placeholder="e.g. 12" />
+                <Field label="Covers" type="number" min={0} value={covers} onChange={(e) => setCovers(e.target.value)} placeholder="Guests" />
+              </div>
+            )}
+            {shop?.tipsEnabled !== false && (
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-wrap gap-2">
+                  {[10, 12, 15, 20].map((pct) => (
+                    <button
+                      key={pct}
+                      type="button"
+                      onClick={() => { setTipPercent(pct); setTipAmount(""); }}
+                      className={`rounded-lg border px-3 py-1.5 text-xs font-medium ${
+                        tipPercent === pct ? "border-brand bg-brand text-brand-foreground" : "border-border text-foreground/70"
+                      }`}
+                    >
+                      Tip {pct}%
+                    </button>
+                  ))}
+                  <button type="button" onClick={() => { setTipPercent(null); setTipAmount("0"); }} className="rounded-lg border border-border px-3 py-1.5 text-xs text-foreground/70">
+                    No tip
+                  </button>
+                </div>
+                <Field
+                  label="Tip amount"
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={tipPercent != null ? String(round2(quote.total * (tipPercent / 100))) : tipAmount}
+                  onChange={(e) => { setTipPercent(null); setTipAmount(e.target.value); }}
+                />
+              </div>
+            )}
+
+            <h2 className="mt-2 text-base font-semibold text-foreground">Payment</h2>
+
+            <div className="grid grid-cols-3 gap-2">
+              {(["CASH", "CARD", "UPI"] as PaymentMethod[]).filter((m) => m !== "UPI" || shop?.upiId).map((m) => (
                 <button
                   key={m}
                   type="button"
@@ -826,7 +900,9 @@ export default function PosPage() {
                 <>
                   <Row label={adjusted ? "This sale" : "Subtotal"} value={money(adjusted ? quote.total : quote.subtotal)} />
                   {!adjusted && quote.discountAmount > 0 && <Row label="Discount" value={`- ${money(quote.discountAmount)}`} />}
-                  {!adjusted && shop?.gstEnabled && quote.taxAmount > 0 && <Row label="GST (included)" value={money(quote.taxAmount)} />}
+                  {!adjusted && shop?.gstEnabled && quote.taxAmount > 0 && <Row label="VAT (included)" value={money(quote.taxAmount)} />}
+                  {!adjusted && serviceChargeAmt > 0 && <Row label={`Service charge (${shop?.serviceChargePercent || 0}%)`} value={money(serviceChargeAmt)} />}
+                  {!adjusted && tipAmtFinal > 0 && <Row label="Tip" value={money(tipAmtFinal)} />}
                   {!adjusted && quote.loyaltyDiscount > 0 && <Row label="Loyalty" value={`- ${money(quote.loyaltyDiscount)}`} />}
                   {returnTotal > 0 && <Row label="Returns" value={`- ${money(returnTotal)}`} />}
                   {creditUse > 0 && <Row label="Store credit used" value={`- ${money(creditUse)}`} />}
