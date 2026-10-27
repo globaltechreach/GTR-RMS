@@ -47,6 +47,8 @@ export interface ShopSettings {
   termsText: string | null;
   cashDrawer: boolean;
   serialTracking: boolean;
+  serviceChargePercent: number;
+  tipsEnabled: boolean;
   terminalProvider: "none" | "stripe" | "square";
   fxRates: string | null;
   reportEmail: string | null;
@@ -144,6 +146,11 @@ export interface Invoice {
   loyaltyDiscount: number;
   totalAmount: number;
   paymentMethod: "CASH" | "UPI" | "CARD";
+  orderType: "DINE_IN" | "TAKEAWAY" | "DELIVERY";
+  tableNo: string | null;
+  covers: number | null;
+  serviceCharge: number;
+  tipAmount: number;
   amountPaid: number;
   changeDue: number;
   dueAmount: number;
