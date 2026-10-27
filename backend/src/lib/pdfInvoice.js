@@ -165,7 +165,9 @@ async function buildInvoicePdf({ shop, invoice }) {
     if (invoice.discountAmount > 0) trow(invoice.discountType === 'percent' ? `Discount (${invoice.discountValue}%)` : 'Discount', `- ${money(invoice.discountAmount)}`);
     if (shop.gstEnabled && invoice.taxAmount > 0) {
       const half = Math.round((invoice.taxAmount / 2 + Number.EPSILON) * 100) / 100;
-      trow('VAT', money(invoice.taxAmount));
+      trow('VAT (included)', money(invoice.taxAmount));
+    if (invoice.serviceCharge > 0) trow('Service charge', money(invoice.serviceCharge));
+    if (invoice.tipAmount > 0) trow('Tip', money(invoice.tipAmount));
       
     }
     if (invoice.loyaltyDiscount > 0) trow(`Loyalty (${invoice.pointsRedeemed} pts)`, `- ${money(invoice.loyaltyDiscount)}`);
