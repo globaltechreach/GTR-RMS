@@ -136,22 +136,30 @@ const createUserSchema = z.object({
   email: z.string().trim().toLowerCase().email().max(200),
   password: z.string().min(8).max(200),
   role: z.enum(['admin', 'manager', 'cashier', 'waiter', 'kitchen', 'franchisor']).default('cashier'),
-  permissions: z.array(z.enum(PERMISSIONS)).optional(),
-  maxDiscountPercent: z.number().min(0).max(100).nullable().optional(),
+  // Accept any strings then filter — avoids 400 when UI sends a slightly stale perm list
+  permissions: z.array(z.string()).optional(),
+  maxDiscountPercent: z.preprocess(
+    (v) => (v === '' || v === undefined || (typeof v === 'number' && Number.isNaN(v)) ? null : v),
+    z.number().min(0).max(100).nullable().optional()
+  ),
+  confirmPassword: z.string().optional(),
 });
 router.post('/users', requireAuth, requireAdmin, requirePasswordConfirm, async (req, res) => {
   const parsed = createUserSchema.safeParse(req.body);
   if (!parsed.success) {
-    return res.status(400).json({ error: 'Invalid input', details: parsed.error.flatten() });
+    const flat = parsed.error.flatten();
+    const field = Object.entries(flat.fieldErrors || {}).map(([k, v]) => `${k}: ${(v || []).join(', ')}`).join('; ');
+    return res.status(400).json({ error: field || 'Invalid input', details: flat });
   }
   const exists = await prisma.user.findUnique({ where: { email: parsed.data.email } });
   if (exists) return res.status(409).json({ error: 'A user with that email already exists' });
 
   const passwordHash = await bcrypt.hash(parsed.data.password, 12);
   const role = parsed.data.role || 'cashier';
-  const perms = parsed.data.permissions && parsed.data.permissions.length
-    ? parsed.data.permissions
-    : (ROLE_DEFAULTS[role] || ROLE_DEFAULTS.cashier);
+  const rawPerms = parsed.data.permissions && parsed.data.permissions.length
+    ? parsed.data.permissions.filter((p) => PERMISSIONS.includes(p))
+    : null;
+  const perms = rawPerms && rawPerms.length ? rawPerms : (ROLE_DEFAULTS[role] || ROLE_DEFAULTS.cashier);
   const user = await prisma.user.create({
     data: {
       name: parsed.data.name,
