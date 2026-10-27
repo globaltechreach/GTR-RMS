@@ -99,12 +99,22 @@ function requireAdmin(req, res, next) {
 // Granular rights for non-admins (see User.permissions). Admins pass every
 // check; a franchisor is read-only everywhere and so only ever passes
 // 'reports'. Usage: router.post('/x', requirePerm('returns'), handler).
-const PERMISSIONS = ['discount', 'returns', 'reports', 'inventory', 'customers', 'orders', 'purchasing'];
+const PERMISSIONS = ['pos', 'kitchen', 'discount', 'returns', 'reports', 'inventory', 'customers', 'orders', 'purchasing', 'settings', 'team'];
+// Default permission sets for restaurant roles (applied when creating staff).
+const ROLE_DEFAULTS = {
+  admin: PERMISSIONS.slice(),
+  manager: PERMISSIONS.slice(),
+  cashier: ['pos', 'discount', 'returns', 'customers'],
+  waiter: ['pos', 'customers', 'orders'],
+  kitchen: ['kitchen'],
+  franchisor: ['reports'],
+};
+const STAFF_ROLES = ['admin', 'manager', 'cashier', 'waiter', 'kitchen', 'franchisor'];
 function hasPerm(user, perm) {
   if (!user) return false;
-  if (user.role === 'admin') return true;
+  if (user.role === 'admin' || user.role === 'manager') return true;
   if (user.role === 'franchisor') return perm === 'reports';
-  return user.permissions.includes(perm);
+  return Array.isArray(user.permissions) && user.permissions.includes(perm);
 }
 function requirePerm(perm) {
   return (req, res, next) => {
@@ -179,6 +189,9 @@ async function requirePasswordConfirm(req, res, next) {
 }
 
 module.exports = {
+  PERMISSIONS,
+  ROLE_DEFAULTS,
+  STAFF_ROLES,
   issueToken,
   setSessionCookie,
   clearSessionCookie,
