@@ -82,6 +82,8 @@ model ShopSettings {
   // Global toggle: when true, checkout can capture serial/IMEI numbers for
   // products that have trackSerial enabled.
   serialTracking Boolean  @default(false)
+  serviceChargePercent Float @default(0)
+  tipsEnabled    Boolean  @default(true)
   // Card terminal (Stripe Terminal / Square Terminal). Provider secrets are
   // AES-GCM encrypted (lib/secretBox.js) — never stored or returned in clear.
   terminalProvider String @default("none") // none | stripe | square
@@ -250,6 +252,11 @@ model Invoice {
   // Card-terminal payment id (Stripe PaymentIntent / Square checkout) that
   // the server verified as paid before accepting this CARD sale.
   paymentRef     String?
+  orderType      String        @default("DINE_IN")
+  tableNo        String?
+  covers         Int?
+  serviceCharge  Float         @default(0)
+  tipAmount      Float         @default(0)
   createdAt      DateTime      @default(now())
   customer       Customer?     @relation(fields: [customerId], references: [id])
   items          InvoiceItem[]
