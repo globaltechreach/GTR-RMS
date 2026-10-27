@@ -40,10 +40,16 @@ router.post('/', async (req, res) => {
 // GET /api/invoices?q=&from=&to=
 router.get('/', async (req, res) => {
   const q = (req.query.q || '').toString().trim();
+  const take = Math.min(300, Math.max(1, parseInt(String(req.query.limit || '300'), 10) || 300));
   const where = q
     ? { OR: [{ invoiceNumber: { contains: q } }, { customerName: { contains: q } }, { customerPhone: { contains: q } }] }
     : undefined;
-  const invoices = await prisma.invoice.findMany({ where, orderBy: { createdAt: 'desc' }, take: 300 });
+  const invoices = await prisma.invoice.findMany({
+    where,
+    orderBy: { createdAt: 'desc' },
+    take,
+    include: { items: true },
+  });
   res.json(invoices);
 });
 
