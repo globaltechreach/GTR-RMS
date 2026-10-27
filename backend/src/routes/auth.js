@@ -12,6 +12,7 @@ const {
   requirePasswordConfirm,
   verifyPassword,
   PERMISSIONS,
+  ROLE_DEFAULTS,
 } = require('../middleware/auth');
 
 const router = express.Router();
@@ -134,8 +135,8 @@ const createUserSchema = z.object({
   name: z.string().trim().min(1).max(100),
   email: z.string().trim().toLowerCase().email().max(200),
   password: z.string().min(8).max(200),
-  role: z.enum(['admin', 'cashier', 'franchisor']).default('cashier'),
-  permissions: z.array(z.enum(PERMISSIONS)).default(['discount', 'returns', 'customers', 'orders']),
+  role: z.enum(['admin', 'manager', 'cashier', 'waiter', 'kitchen', 'franchisor']).default('cashier'),
+  permissions: z.array(z.enum(PERMISSIONS)).optional(),
   maxDiscountPercent: z.number().min(0).max(100).nullable().optional(),
 });
 router.post('/users', requireAuth, requireAdmin, requirePasswordConfirm, async (req, res) => {
@@ -147,15 +148,26 @@ router.post('/users', requireAuth, requireAdmin, requirePasswordConfirm, async (
   if (exists) return res.status(409).json({ error: 'A user with that email already exists' });
 
   const passwordHash = await bcrypt.hash(parsed.data.password, 12);
+  const role = parsed.data.role || 'cashier';
+  const perms = parsed.data.permissions && parsed.data.permissions.length
+    ? parsed.data.permissions
+    : (ROLE_DEFAULTS[role] || ROLE_DEFAULTS.cashier);
   const user = await prisma.user.create({
-    data: { ...parsed.data, permissions: parsed.data.permissions.join(','), password: passwordHash },
+    data: {
+      name: parsed.data.name,
+      email: parsed.data.email,
+      password: passwordHash,
+      role,
+      permissions: role === 'admin' || role === 'manager' ? '' : perms.join(','),
+      maxDiscountPercent: parsed.data.maxDiscountPercent ?? null,
+    },
   });
   res.status(201).json(publicUser(user));
 });
 
 const updateUserSchema = z.object({
   name: z.string().trim().min(1).max(100).optional(),
-  role: z.enum(['admin', 'cashier', 'franchisor']).optional(),
+  role: z.enum(['admin', 'manager', 'cashier', 'waiter', 'kitchen', 'franchisor']).optional(),
   permissions: z.array(z.enum(PERMISSIONS)).optional(),
   maxDiscountPercent: z.number().min(0).max(100).nullable().optional(),
   active: z.boolean().optional(),
