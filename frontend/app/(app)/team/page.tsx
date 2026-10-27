@@ -105,7 +105,11 @@ function MemberDrawer({ user, isSelf, onClose }: { user: AuthUser | null; isSelf
         {!user && <Field label="Email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />}
         <Field label={user ? "New password (leave blank to keep)" : "Password"} type="password" minLength={8} required={!user} value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" />
         <label className="flex flex-col gap-1.5 text-sm font-medium">Role
-          <select value={role} disabled={isSelf} onChange={(e) => setRole(e.target.value as Role)} className="rounded-lg border border-border bg-surface px-3 py-2.5 text-sm">
+          <select value={role} disabled={isSelf} onChange={(e) => {
+              const r = e.target.value as Role;
+              setRole(r);
+              setPerms(ROLE_DEFAULTS[r] ?? []);
+            }} className="rounded-lg border border-border bg-surface px-3 py-2.5 text-sm">
             <option value="manager">Manager</option>
             <option value="cashier">Cashier</option>
             <option value="waiter">Waiter / Server</option>
@@ -114,7 +118,7 @@ function MemberDrawer({ user, isSelf, onClose }: { user: AuthUser | null; isSelf
             <option value="franchisor">Franchisor (read-only, hub)</option>
           </select>
         </label>
-        {role === "cashier" && (
+        {(role === "cashier" || role === "waiter" || role === "kitchen") && (
           <fieldset className="flex flex-col gap-2.5 rounded-xl border border-border p-4">
             <legend className="px-1 text-sm font-semibold">Permissions</legend>
             {PERMS.map((p) => (
