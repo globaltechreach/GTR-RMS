@@ -26,7 +26,7 @@ const STATUS_META: Record<
   TableStatus,
   { label: string; tone: "brand" | "warn" | "bad" | "neutral" | "success"; className: string }
 > = {
-  AVAILABLE: { label: "Available", tone: "success", className: "border-emerald-500/40 bg-emerald-500/10" },
+  AVAILABLE: { label: "Available", tone: "brand", className: "border-emerald-500/40 bg-emerald-500/10" },
   OCCUPIED: { label: "Occupied", tone: "bad", className: "border-rose-500/40 bg-rose-500/10" },
   RESERVED: { label: "Reserved", tone: "warn", className: "border-amber-500/40 bg-amber-500/10" },
   BILLING: { label: "Billing", tone: "brand", className: "border-brand/40 bg-brand/10" },
@@ -171,7 +171,7 @@ export default function TablesPage() {
 
       <div className="mb-4 flex flex-wrap gap-2 text-sm">
         <Badge tone="neutral">{counts.total} tables</Badge>
-        <Badge tone="success">{counts.AVAILABLE} free</Badge>
+        <Badge tone="brand">{counts.AVAILABLE} free</Badge>
         <Badge tone="bad">{counts.OCCUPIED} occupied</Badge>
         <Badge tone="warn">{counts.RESERVED} reserved</Badge>
         <Badge tone="brand">{counts.BILLING} billing</Badge>
@@ -210,9 +210,9 @@ export default function TablesPage() {
       {isLoading && <p className="text-foreground-muted">Loading tables…</p>}
       {!isLoading && visible.length === 0 && (
         <EmptyState
-          icon={LayoutGrid}
+          icon={<LayoutGrid className="h-8 w-8" aria-hidden="true" />}
           title="No tables yet"
-          description="Add tables manually or use Quick setup to create tables 1–12 in the Main section."
+          hint="Add tables manually or use Quick setup to create tables 1–12 in the Main section."
         />
       )}
 
