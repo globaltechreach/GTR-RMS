@@ -93,7 +93,7 @@ export default function TablesPage() {
       setOpenNew(false);
       setForm({ number: "", name: "", section: "Main", seats: "4" });
     } catch (e) {
-      show(describeApiError(e), "error");
+      show(describeApiError(e) || "Request failed — is the backend redeployed?", "error");
     }
   }
 
@@ -102,7 +102,7 @@ export default function TablesPage() {
       await setStatus.mutateAsync({ id: t.id, status });
       show(`Table ${t.number} → ${STATUS_META[status].label}`, "success");
     } catch (e) {
-      show(describeApiError(e), "error");
+      show(describeApiError(e) || "Request failed — is the backend redeployed?", "error");
     }
   }
 
@@ -112,7 +112,7 @@ export default function TablesPage() {
       await deleteTable.mutateAsync(t.id);
       show(`Table ${t.number} removed`, "success");
     } catch (e) {
-      show(describeApiError(e), "error");
+      show(describeApiError(e) || "Request failed — is the backend redeployed?", "error");
     }
   }
 
@@ -121,7 +121,7 @@ export default function TablesPage() {
       const res = await seedTables.mutateAsync({ count: 12, section: "Main", seats: 4 });
       show(`Created ${res.created} tables`, "success");
     } catch (e) {
-      show(describeApiError(e), "error");
+      show(describeApiError(e) || "Request failed — is the backend redeployed?", "error");
     }
   }
 
@@ -139,7 +139,7 @@ export default function TablesPage() {
       show("Table updated", "success");
       setEdit(null);
     } catch (e) {
-      show(describeApiError(e), "error");
+      show(describeApiError(e) || "Request failed — is the backend redeployed?", "error");
     }
   }
 
