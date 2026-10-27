@@ -1,7 +1,7 @@
 const express = require('express');
 const { z } = require('zod');
 const prisma = require('../lib/prisma');
-const { requireAuth, requirePerm } = require('../middleware/auth');
+const { requireAuth, requirePerm, hasPerm } = require('../middleware/auth');
 const { notifyStockChange } = require('../lib/webhooks');
 const { importProducts, sampleCsv, COLUMNS } = require('../lib/bulkImport');
 
@@ -144,6 +144,36 @@ router.get('/scan/:code', async (req, res) => {
   if (product) return res.json({ type: 'product', product });
 
   res.status(404).json({ error: 'Nothing matches that code' });
+});
+
+
+// Quick menu item from POS (name + price) — for restaurants adding items without full inventory form.
+router.post('/quick', async (req, res) => {
+  if (!hasPerm(req.user, 'pos') && !hasPerm(req.user, 'inventory')) {
+    return res.status(403).json({ error: 'POS or inventory permission required' });
+  }
+  const name = String(req.body?.name || '').trim().slice(0, 200);
+  const sellingPrice = Number(req.body?.sellingPrice);
+  const taxRate = Number(req.body?.taxRate);
+  if (!name || !(sellingPrice >= 0)) {
+    return res.status(400).json({ error: 'name and sellingPrice are required' });
+  }
+  const settings = await prisma.shopSettings.findFirst();
+  const rate = Number.isFinite(taxRate) ? taxRate : (settings?.defaultTaxRate ?? 5);
+  const barcode = `Q${Date.now().toString(36).toUpperCase()}`;
+  const product = await prisma.product.create({
+    data: {
+      barcode,
+      name,
+      sellingPrice,
+      purchasePrice: 0,
+      taxRate: rate,
+      stock: settings?.allowNegativeStock ? 0 : 9999,
+      category: req.body?.category ? String(req.body.category).slice(0, 80) : 'Menu',
+      unit: req.body?.unit ? String(req.body.unit).slice(0, 10) : 'pc',
+    },
+  });
+  res.status(201).json(product);
 });
 
 router.post('/', requirePerm('inventory'), async (req, res) => {
