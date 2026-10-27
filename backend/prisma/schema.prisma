@@ -79,6 +79,9 @@ model ShopSettings {
   termsText      String?
   // Hardware
   cashDrawer     Boolean  @default(false) // pulse the cash drawer on a cash sale (ESC/POS via the receipt printer)
+  // Global toggle: when true, checkout can capture serial/IMEI numbers for
+  // products that have trackSerial enabled.
+  serialTracking Boolean  @default(false)
   // Card terminal (Stripe Terminal / Square Terminal). Provider secrets are
   // AES-GCM encrypted (lib/secretBox.js) — never stored or returned in clear.
   terminalProvider String @default("none") // none | stripe | square
