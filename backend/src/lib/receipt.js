@@ -44,8 +44,10 @@ function buildReceiptHtml({ shop, invoice }) {
     // tax already inside the total above, not additional charges. Labelled
     // "(incl.)" so the receipt doesn't read as if they should be added.
     const half = Math.round((invoice.taxAmount / 2 + Number.EPSILON) * 100) / 100;
-    totalRows.push(['VAT', money(invoice.taxAmount)]);
+    totalRows.push(['VAT (included)', money(invoice.taxAmount)]);
   }
+  if (invoice.serviceCharge > 0) totalRows.push(['Service charge', money(invoice.serviceCharge)]);
+  if (invoice.tipAmount > 0) totalRows.push(['Tip', money(invoice.tipAmount)]);
   if (invoice.loyaltyDiscount > 0) {
     totalRows.push([`Loyalty (${invoice.pointsRedeemed} pts)`, `- ${money(invoice.loyaltyDiscount)}`]);
   }
@@ -75,7 +77,7 @@ function buildReceiptHtml({ shop, invoice }) {
 <html>
 <head>
 <meta charset="utf-8">
-<title>${esc(invoice.invoiceNumber)}</title>
+<title>${esc(invoice.invoiceNumber)}${invoice.orderType ? ` · ${esc(String(invoice.orderType).replace('_',' '))}` : ''}${invoice.tableNo ? ` · Table ${esc(invoice.tableNo)}` : ''}</title>
 <style>
   /* Kept deliberately tight: every extra pixel of vertical whitespace here
      is real thermal paper on every single receipt printed, forever. */
