@@ -1,5 +1,7 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
@@ -54,6 +56,18 @@ export default function PosPage() {
   const [covers, setCovers] = useState("");
   const [tipAmount, setTipAmount] = useState("");
   const [tipPercent, setTipPercent] = useState<number | null>(null);
+  const searchParams = useSearchParams();
+  // Prefill dine-in table from /tables "Open on POS"
+  useEffect(() => {
+    const t = searchParams.get("table");
+    const ot = searchParams.get("orderType");
+    if (ot === "DINE_IN" || ot === "TAKEAWAY" || ot === "DELIVERY") setOrderType(ot);
+    if (t) {
+      setTableNo(t);
+      setOrderType("DINE_IN");
+    }
+  }, [searchParams]);
+
   const [amountPaid, setAmountPaid] = useState("");
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [completedSale, setCompletedSale] = useState<{ id: number; invoiceNumber: string; totalAmount: number } | null>(
