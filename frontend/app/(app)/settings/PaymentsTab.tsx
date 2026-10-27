@@ -31,8 +31,8 @@ function UpiCard({ settings }: { settings: ShopSettings }) {
   const [drawer, setDrawer] = useState(settings.cashDrawer);
   return (
     <Card className="flex flex-col gap-4 p-6">
-      <h2 className="text-base font-semibold">UPI &amp; cash drawer</h2>
-      <Field label="Your UPI id (VPA)" placeholder="shop@okhdfcbank" value={upi} onChange={(e) => setUpi(e.target.value.trim())} />
+      <h2 className="text-base font-semibold">Cash drawer &amp; UPI (India)</h2>
+      <Field label="UPI id / VPA (India only — leave blank in UAE)" placeholder="shop@bank (India only)" value={upi} onChange={(e) => setUpi(e.target.value.trim())} />
       <p className="-mt-2 text-xs text-foreground-muted">At checkout the POS shows a QR for the exact amount, and the A4 invoice prints one for any balance due. INR shops only.</p>
       <Toggle label="Open the cash drawer on cash sales" description="Sends the standard drawer-kick pulse through the receipt printer's RJ11 port." checked={drawer} onChange={setDrawer} />
       <div><Button onClick={() => save({ upiId: upi, cashDrawer: drawer })}>Save</Button></div>
