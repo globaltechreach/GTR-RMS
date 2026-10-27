@@ -7,6 +7,7 @@ const rateLimit = require('express-rate-limit');
 const { execFile } = require('child_process');
 
 const authRoutes = require('./routes/auth');
+const tableRoutes = require('./routes/tables');
 const settingsRoutes = require('./routes/settings');
 const productRoutes = require('./routes/products');
 const customerRoutes = require('./routes/customers');
@@ -91,6 +92,7 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/update', updateRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/customers', customerRoutes);
+app.use('/api/tables', tableRoutes);
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/returns', returnRoutes);
 app.use('/api/print', printRoutes);
