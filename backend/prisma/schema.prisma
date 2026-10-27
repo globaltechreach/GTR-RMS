@@ -571,3 +571,19 @@ model AppliedTransfer {
   status     String // SHIPPED | RECEIVED
   appliedAt  DateTime @default(now())
 }
+
+// Restaurant floor tables (UAE F&B table management).
+model DiningTable {
+  id        Int       @id @default(autoincrement())
+  number    String    @unique // e.g. "1", "12A"
+  name      String? // optional label e.g. "Window booth"
+  section   String? // Indoor | Terrace | Private
+  seats     Int       @default(4)
+  status    String    @default("AVAILABLE") // AVAILABLE | OCCUPIED | RESERVED | BILLING
+  note      String?
+  active    Boolean   @default(true)
+  sortOrder Int       @default(0)
+  openedAt  DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
