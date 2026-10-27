@@ -266,20 +266,22 @@ export default function TablesPage() {
         })}
       </ul>
 
-      <Modal open={openNew} onClose={() => setOpenNew(false)} title="Add table">
-        <div className="flex flex-col gap-3">
-          <Field label="Table number" value={form.number} onChange={(e) => setForm((f) => ({ ...f, number: e.target.value }))} placeholder="e.g. 7" />
-          <Field label="Name (optional)" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="Window booth" />
-          <Field label="Section" value={form.section} onChange={(e) => setForm((f) => ({ ...f, section: e.target.value }))} />
-          <Field label="Seats" type="number" min={1} value={form.seats} onChange={(e) => setForm((f) => ({ ...f, seats: Number(e.target.value) }))} />
-          <Button onClick={onCreate} disabled={!form.number.trim() || createTable.isPending}>
-            Save table
-          </Button>
-        </div>
-      </Modal>
+      {openNew && (
+        <Modal onClose={() => setOpenNew(false)} title="Add table">
+          <div className="flex flex-col gap-3">
+            <Field label="Table number" value={form.number} onChange={(e) => setForm((f) => ({ ...f, number: e.target.value }))} placeholder="e.g. 7" />
+            <Field label="Name (optional)" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="Window booth" />
+            <Field label="Section" value={form.section} onChange={(e) => setForm((f) => ({ ...f, section: e.target.value }))} />
+            <Field label="Seats" type="number" min={1} value={form.seats} onChange={(e) => setForm((f) => ({ ...f, seats: Number(e.target.value) }))} />
+            <Button onClick={onCreate} disabled={!form.number.trim() || createTable.isPending}>
+              Save table
+            </Button>
+          </div>
+        </Modal>
+      )}
 
-      <Modal open={!!edit} onClose={() => setEdit(null)} title={edit ? `Edit table ${edit.number}` : "Edit"}>
-        {edit && (
+      {edit && (
+        <Modal onClose={() => setEdit(null)} title={`Edit table ${edit.number}`}>
           <div className="flex flex-col gap-3">
             <Field label="Number" value={edit.number} onChange={(e) => setEdit({ ...edit, number: e.target.value })} />
             <Field label="Name" value={edit.name ?? ""} onChange={(e) => setEdit({ ...edit, name: e.target.value })} />
@@ -295,8 +297,8 @@ export default function TablesPage() {
               </Button>
             </div>
           </div>
-        )}
-      </Modal>
+        </Modal>
+      )}
     </div>
   );
 }
